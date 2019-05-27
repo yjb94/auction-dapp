@@ -11,7 +11,6 @@ import 'filepond/dist/filepond.min.css';
 import ipfs from '../../utils/ipfs';
 import '../../css/filepond-custom.css'
 import StateButton, { ButtonState } from '../../components/Button/StateButton';
-import Input from '../../components/DataEntry/Input';
 
 class IpfsImgUpload extends Component {
 
@@ -55,7 +54,7 @@ class IpfsImgUpload extends Component {
     }
 
     validate = () => {
-        const { files, title, description, price } = this.state;
+        const { files } = this.state;
         var err_msg = "";
 
         // if(!price)
@@ -106,13 +105,6 @@ class IpfsImgUpload extends Component {
     handleReset = () => {
         this.setState({imageUrl: null});
         this.pond.removeFile();
-    }
-
-    onInputChange = (e) => {
-        e.preventDefault();
-        let state = {};
-        state[e.target.id] = e.target.value;
-        this.setState(state);
     }
 
     render() {

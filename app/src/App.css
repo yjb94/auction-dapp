@@ -1,69 +1,17 @@
-.App {
-  text-align: center;
-  margin: 2rem;
-  font-family: 'Open Sans', sans-serif;
+.my-masonry-grid {
+  display: -webkit-box; /* Not needed if autoprefixing */
+  display: -ms-flexbox; /* Not needed if autoprefixing */
+  display: flex;
+  margin-left: -30px; /* gutter size offset */
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 30px; /* gutter size */
+  background-clip: padding-box;
 }
 
-
-
-.section {
-  text-align: left;
-  max-width: 720px;
-  margin: 4rem auto auto;
+// Style your items
+.my-masonry-grid_column > div { /* change div to reference your elements you put in <Masonry> */
+  background: grey;
+  margin-bottom: 30px;
 }
-
-/* LoadingContainer */
-.container {
-  box-sizing: border-box;
-  width: calc(100% - 60px);
-  max-width: 720px;
-  padding: 45px 20px;
-  margin: 0 auto;
-}
-
-/*
-.section input[type="number"] {
-  border-color: #0c1a2b;
-  display: inline-block;
-}
-*/
-
-
-/* custom style */
-.Menu-header {
-  background-color: #222;
-  height: 60px;
-  padding: 10px;
-  color: white;
-  align-content: center;
-}
-
-.Menu-item {
-  height: 40px;
-  margin-right: 30px;
-}
-
-.Login-item {
-  height: 40px;
-  margin-right: 20px;
-  float: right;
-}
-
-.App-logo {
-  height: 40px;
-  margin-right: 40px;
-}
-
-.Emoji-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100px;
-  width: 100px;
-}
-
-.Token-desc {
-  position: absolute;
-  left: 150px;
-}
-

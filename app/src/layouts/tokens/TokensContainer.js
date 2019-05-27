@@ -9,7 +9,6 @@ const mapStateToProps = state => {
     }
 }
 
-
 const TokensContainer = drizzleConnect(Tokens, mapStateToProps);
 
 export default TokensContainer

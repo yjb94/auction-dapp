@@ -11,7 +11,7 @@ import ipfsContainer from "./layouts/ipfs/ipfsContainer";
 import { GlobalStyle } from './globalStyles';
 import { config } from './constants/general';
 import AuctionContainer from './layouts/auction/AuctionContainer';
-import CreateAuction from './layouts/auction/CreateAuction';
+import TokenDetail from './layouts/tokens/TokenDetail';
 
 class Home extends Component {
     render() {
@@ -55,7 +55,7 @@ class Home extends Component {
                 <Route path={"/artworks"} component={TokensContainer}/>
                 <Route path={"/gallery"} component={AuctionContainer}/>
     
-                <Route path={"/artwork/:hash"} component={CreateAuction}/>
+                <Route path={"/artwork/:id"} component={TokenDetail}/>
             </div>
         );
     }
