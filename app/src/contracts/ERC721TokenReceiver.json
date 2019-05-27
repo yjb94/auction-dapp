@@ -39,9 +39,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.5.0;\r\n\r\nimport \"./ERC721.sol\";\r\nimport \"./ERC165.sol\";\r\nimport \"./SafeMath.sol\";\r\nimport \"./Address.sol\";\r\n\r\ncontract DeedToken is ERC721, ERC165 {\r\n\r\n    using SafeMath for uint256;\r\n    using Address for address;\r\n\r\n    address payable public owner;\r\n    mapping(bytes4 => bool) supportedInterfaces;\r\n\r\n    mapping(uint256 => address) tokenOwners;\r\n    mapping(address => uint256) balances;\r\n    mapping(uint256 => address) allowance;\r\n    mapping(address => mapping(address => bool)) operators;\r\n\r\n    struct asset {\r\n        uint8 x;\r\n        uint8 y;\r\n        uint8 z;\r\n    }\r\n\r\n    asset[] public allTokens;\r\n\r\n    //for enumeration\r\n    uint256[] public allValidTokenIds; //same as allTokens but does't have invalid tokens\r\n    mapping(uint256 => uint256) private allValidTokenIndex;\r\n\r\n\r\n    modifier onlyOwner {\r\n        require(msg.sender == owner, \"Only owner can call this function.\");\r\n        _;\r\n    }\r\n\r\n    constructor() public {\r\n        owner = msg.sender;\r\n        supportedInterfaces[0x01ffc9a7] = true; //ERC165\r\n        supportedInterfaces[0x80ac58cd] = true; //ERC721\r\n    }\r\n\r\n    function supportsInterface(bytes4 interfaceID) external view returns (bool){\r\n        return supportedInterfaces[interfaceID];\r\n    }\r\n\r\n    function balanceOf(address _owner) external view returns (uint256) {\r\n        require(_owner != address(0));\r\n        return balances[_owner];\r\n    }\r\n\r\n    function ownerOf(uint256 _tokenId) public view returns (address) {\r\n\r\n        address addr_owner = tokenOwners[_tokenId];\r\n        require(\r\n            addr_owner != address(0),\r\n            \"Token is invalid\"\r\n        );\r\n        return addr_owner;\r\n    }\r\n\r\n    function transferFrom(address _from, address _to, uint256 _tokenId) public payable {\r\n\r\n        address addr_owner = ownerOf(_tokenId);\r\n\r\n        require(\r\n            addr_owner == _from,\r\n            \"_from is NOT the owner of the token\"\r\n        );\r\n\r\n        require(\r\n            _to != address(0),\r\n            \"Transfer _to address 0x0\"\r\n        );\r\n\r\n        address addr_allowed = allowance[_tokenId];\r\n        bool isOp = operators[addr_owner][msg.sender];\r\n\r\n        require(\r\n            addr_owner == msg.sender || addr_allowed == msg.sender || isOp,\r\n            \"msg.sender does not have transferable token\"\r\n        );\r\n\r\n\r\n        //transfer : change the owner of the token\r\n        tokenOwners[_tokenId] = _to;\r\n        balances[_from] = balances[_from].sub(1);\r\n        balances[_to] = balances[_to].add(1);\r\n\r\n        //reset approved address\r\n        if (allowance[_tokenId] != address(0)) {\r\n            delete allowance[_tokenId];\r\n        }\r\n\r\n        emit Transfer(_from, _to, _tokenId);\r\n\r\n    }\r\n\r\n    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes memory data) public payable {\r\n\r\n        transferFrom(_from, _to, _tokenId);\r\n\r\n        //check if _to is CA\r\n        if (_to.isContract()) {\r\n            bytes4 result = ERC721TokenReceiver(_to).onERC721Received(msg.sender, _from, _tokenId, data);\r\n\r\n            require(\r\n                result == bytes4(keccak256(\"onERC721Received(address,address,uint256,bytes)\")),\r\n                \"receipt of token is NOT completed\"\r\n            );\r\n        }\r\n\r\n    }\r\n\r\n    function safeTransferFrom(address _from, address _to, uint256 _tokenId) public payable {\r\n        safeTransferFrom(_from, _to, _tokenId, \"\");\r\n    }\r\n\r\n\r\n    function approve(address _approved, uint256 _tokenId) external payable {\r\n\r\n        address addr_owner = ownerOf(_tokenId);\r\n        bool isOp = operators[addr_owner][msg.sender];\r\n\r\n        require(\r\n            addr_owner == msg.sender || isOp,\r\n            \"Not approved by owner\"\r\n        );\r\n\r\n        allowance[_tokenId] = _approved;\r\n\r\n        emit Approval(addr_owner, _approved, _tokenId);\r\n    }\r\n\r\n    function setApprovalForAll(address _operator, bool _approved) external {\r\n        operators[msg.sender][_operator] = _approved;\r\n        emit ApprovalForAll(msg.sender, _operator, _approved);\r\n    }\r\n\r\n\r\n    function getApproved(uint256 _tokenId) external view returns (address) {\r\n        return allowance[_tokenId];\r\n    }\r\n\r\n    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {\r\n        return operators[_owner][_operator];\r\n    }\r\n\r\n\r\n    //non-ERC721 standard\r\n    //\r\n    //\r\n    function () external payable {}\r\n\r\n    function mint(uint8 _x, uint8 _y, uint8 _z) external payable {\r\n\r\n        asset memory newAsset = asset(_x, _y, _z);\r\n        uint tokenId = allTokens.push(newAsset) - 1;\r\n        //token id starts from 0, index of assets array\r\n        tokenOwners[tokenId] = msg.sender;\r\n        balances[msg.sender] = balances[msg.sender].add(1);\r\n\r\n        //for enumeration\r\n        allValidTokenIndex[tokenId] = allValidTokenIds.length;\r\n        //index starts from 0\r\n        allValidTokenIds.push(tokenId);\r\n\r\n        emit Transfer(address(0), msg.sender, tokenId);\r\n    }\r\n\r\n    function burn(uint _tokenId) external {\r\n\r\n        address addr_owner = ownerOf(_tokenId);\r\n\r\n        require(\r\n            addr_owner == msg.sender,\r\n            \"msg.sender is NOT the owner of the token\"\r\n        );\r\n\r\n        //reset approved address\r\n        if (allowance[_tokenId] != address(0)) {\r\n            delete allowance[_tokenId];\r\n            // tokenId => 0\r\n        }\r\n\r\n        //transfer : change the owner of the token, but address(0)\r\n        tokenOwners[_tokenId] = address(0);\r\n        balances[msg.sender] = balances[msg.sender].sub(1);\r\n\r\n        //for enumeration\r\n        removeInvalidToken(_tokenId);\r\n\r\n        emit Transfer(addr_owner, address(0), _tokenId);\r\n    }\r\n\r\n    function removeInvalidToken(uint256 tokenIdToRemove) private {\r\n\r\n        uint256 lastIndex = allValidTokenIds.length.sub(1);\r\n        uint256 removeIndex = allValidTokenIndex[tokenIdToRemove];\r\n\r\n        uint256 lastTokenId = allValidTokenIds[lastIndex];\r\n\r\n        //swap\r\n        allValidTokenIds[removeIndex] = lastTokenId;\r\n        allValidTokenIndex[lastTokenId] = removeIndex;\r\n\r\n        //delete\r\n        //Arrays have a length member to hold their number of elements.\r\n        //Dynamic arrays can be resized in storage (not in memory) by changing the .length member.\r\n        allValidTokenIds.length = allValidTokenIds.length.sub(1);\r\n        //allValidTokenIndex is private so can't access invalid token by index programmatically\r\n        allValidTokenIndex[tokenIdToRemove] = 0;\r\n    }\r\n\r\n    //ERC721Enumerable\r\n    function totalSupply() public view returns (uint) {\r\n        return allValidTokenIds.length;\r\n    }\r\n\r\n    //ERC721Enumerable\r\n    function tokenByIndex(uint256 index) public view returns (uint256) {\r\n        require(index < totalSupply());\r\n        return allValidTokenIds[index];\r\n    }\r\n\r\n    //ERC721Metadata\r\n    function name() external pure returns (string memory) {\r\n        return \"EMOJI TOKEN\";\r\n    }\r\n\r\n    //ERC721Metadata\r\n    function symbol() external pure returns (string memory) {\r\n        return \"EMJ\";\r\n    }\r\n\r\n    function kill() external onlyOwner {\r\n        selfdestruct(owner);\r\n    }\r\n\r\n\r\n}\r\n\r\ncontract ERC721TokenReceiver {\r\n\r\n    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes memory _data) public returns (bytes4);\r\n}",
-  "sourcePath": "/Users/camou/Downloads/drizzle-dapp/contracts/DeedToken.sol",
+  "sourcePath": "/Users/camou/Projects/drizzle-dapp/contracts/DeedToken.sol",
   "ast": {
-    "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/DeedToken.sol",
+    "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/DeedToken.sol",
     "exportedSymbols": {
       "DeedToken": [
         1410
@@ -65,7 +65,7 @@
         "src": "0:23:2"
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC721.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC721.sol",
         "file": "./ERC721.sol",
         "id": 746,
         "nodeType": "ImportDirective",
@@ -76,7 +76,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC165.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC165.sol",
         "file": "./ERC165.sol",
         "id": 747,
         "nodeType": "ImportDirective",
@@ -87,7 +87,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/SafeMath.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 748,
         "nodeType": "ImportDirective",
@@ -98,7 +98,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/Address.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/Address.sol",
         "file": "./Address.sol",
         "id": 749,
         "nodeType": "ImportDirective",
@@ -8998,7 +8998,7 @@
     "src": "0:7287:2"
   },
   "legacyAST": {
-    "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/DeedToken.sol",
+    "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/DeedToken.sol",
     "exportedSymbols": {
       "DeedToken": [
         1410
@@ -9022,7 +9022,7 @@
         "src": "0:23:2"
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC721.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC721.sol",
         "file": "./ERC721.sol",
         "id": 746,
         "nodeType": "ImportDirective",
@@ -9033,7 +9033,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC165.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC165.sol",
         "file": "./ERC165.sol",
         "id": 747,
         "nodeType": "ImportDirective",
@@ -9044,7 +9044,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/SafeMath.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/SafeMath.sol",
         "file": "./SafeMath.sol",
         "id": 748,
         "nodeType": "ImportDirective",
@@ -9055,7 +9055,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/Address.sol",
+        "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/Address.sol",
         "file": "./Address.sol",
         "id": 749,
         "nodeType": "ImportDirective",
@@ -17960,7 +17960,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.6",
-  "updatedAt": "2019-05-27T09:38:40.134Z",
+  "updatedAt": "2019-05-27T15:20:46.414Z",
   "devdoc": {
     "methods": {}
   },

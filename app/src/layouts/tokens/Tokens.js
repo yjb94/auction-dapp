@@ -102,7 +102,6 @@ class Tokens extends Component {
 
     async componentDidMount() {
         await this.getTokenList();
-        //event listening
         this.deedIPFSToken.events.Transfer().on("data", (event) => this.getTokenList(event));
     }
 

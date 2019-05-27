@@ -27,9 +27,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.5.0;\r\n\r\ninterface ERC165 {\r\n    /// @notice Query if a contract implements an interface\r\n    /// @param interfaceID The interface identifier, as specified in ERC-165\r\n    /// @dev Interface identification is specified in ERC-165. This function\r\n    ///  uses less than 30,000 gas.\r\n    /// @return `true` if the contract implements `interfaceID` and\r\n    ///  `interfaceID` is not 0xffffffff, `false` otherwise\r\n    function supportsInterface(bytes4 interfaceID) external view returns (bool);\r\n}",
-  "sourcePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC165.sol",
+  "sourcePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC165.sol",
   "ast": {
-    "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC165.sol",
+    "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC165.sol",
     "exportedSymbols": {
       "ERC165": [
         1434
@@ -151,7 +151,7 @@
     "src": "0:514:3"
   },
   "legacyAST": {
-    "absolutePath": "/Users/camou/Downloads/drizzle-dapp/contracts/ERC165.sol",
+    "absolutePath": "/Users/camou/Projects/drizzle-dapp/contracts/ERC165.sol",
     "exportedSymbols": {
       "ERC165": [
         1434
@@ -278,7 +278,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.6",
-  "updatedAt": "2019-05-27T09:38:40.061Z",
+  "updatedAt": "2019-05-27T15:20:46.400Z",
   "devdoc": {
     "methods": {}
   },

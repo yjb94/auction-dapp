@@ -32,8 +32,13 @@ class IpfsImgUpload extends Component {
         this.deedIpfsToken = this.contracts.DeedIPFSToken;
     }
 
-    componentDidMount() {
+    componentDidMount = () => {
         document.addEventListener("FilePond:addfile", this.readFile);
+
+        this.deedIpfsToken.events.Transfer().on("data", _ => {
+            this.setState({ isFetching:false });
+        });
+        
     }
 
     readFile = () => {
@@ -77,7 +82,7 @@ class IpfsImgUpload extends Component {
         if (this.validate()) {
             this.setState({ ipfsHash: '', isFetching:true });
             await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-                this.setState({ ipfsHash:ipfsHash[0].hash, isFetching:false });
+                this.setState({ ipfsHash:ipfsHash[0].hash });
                 this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
             })
         }
