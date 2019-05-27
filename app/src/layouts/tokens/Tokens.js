@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Masonry from '../../components/DataDisplay/Masonry';
 import ipfs from '../../utils/ipfs';
 import Card from '../../components/DataDisplay/Card';
+import { Link } from 'react-router-dom'
 
 class Tokens extends Component {
     state = {
@@ -112,10 +113,6 @@ class Tokens extends Component {
         this.deedIPFSToken.events.Transfer().on("data", (event) => this.getTokenList(event));
     }
 
-    onClickItem = (item) => {
-        console.log("TCL: Tokens -> onClickItem -> item", item)
-    }
-
     render() {
         const { items } = this.state;
 
@@ -126,11 +123,15 @@ class Tokens extends Component {
                 title:item.ipfsHash
             }
             return (
-                <Card 
+                <Link
                     key={idx} 
-                    onClick={this.onClickItem.bind(this, item)}
-                    {...art}
-                />
+                    to={`/artwork/${item.ipfsHash}`}
+                >
+                    <Card 
+                        key={idx}
+                        {...art}
+                    />
+                </Link>
             )
         })
 

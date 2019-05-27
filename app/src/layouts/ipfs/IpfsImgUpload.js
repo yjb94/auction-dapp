@@ -116,7 +116,7 @@ class IpfsImgUpload extends Component {
     }
 
     render() {
-        const { isFetching, title, description, price } =  this.state;
+        const { isFetching } =  this.state;
 
         return (
             <Container>
@@ -137,25 +137,6 @@ class IpfsImgUpload extends Component {
                 </div>
                 <BottomContainer>
                     <InputsContainer>
-                        {/* <Input
-                            id={'title'} 
-                            value={title} 
-                            label={'title'}
-                            onChange={this.onInputChange}
-                        />
-                        <Input
-                            id={'description'} 
-                            value={description} 
-                            label={'description'}
-                            multiline={true}
-                            onChange={this.onInputChange}
-                        />
-                        <Input
-                            id={'price'} 
-                            value={price} 
-                            label={'price'}
-                            onChange={this.onInputChange}
-                        /> */}
                     </InputsContainer>
 
                     <ButtonsContainer>

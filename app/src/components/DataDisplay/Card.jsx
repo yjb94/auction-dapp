@@ -75,6 +75,8 @@ const Container = styled.div`
     transition: opacity .3s ease-in, box-shadow .25s ease-in-out;
     opacity:${props => props.ready ? 1 : 0};
 
+    overflow:hidden;
+
     :hover {
         box-shadow:0px 2px 30px rgba(0, 0, 0, 0.5);
     }
