@@ -12,6 +12,7 @@ import { GlobalStyle } from './globalStyles';
 import { config } from './constants/general';
 import AuctionContainer from './layouts/auction/AuctionContainer';
 import TokenDetail from './layouts/tokens/TokenDetail';
+import AuctionDetail from './layouts/auction/AuctionDetail';
 
 class Home extends Component {
     render() {
@@ -56,6 +57,8 @@ class Home extends Component {
                 <Route path={"/gallery"} component={AuctionContainer}/>
     
                 <Route path={"/artwork/:id"} component={TokenDetail}/>
+
+                <Route path={"/auction/:id"} component={AuctionDetail}/>
             </div>
         );
     }

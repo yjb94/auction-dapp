@@ -10,3 +10,5 @@ export const config = {
         silverChalice:"#A8A8A8",
     },
 }
+
+export const BASE_URI = 'https://cors-anywhere.herokuapp.com/https://us-central1-auction-dapp.cloudfunctions.net/'

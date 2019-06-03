@@ -80,7 +80,10 @@ class IpfsImgUpload extends Component {
     handleUpload = async () => {
         if (this.validate()) {
             this.setState({ ipfsHash: '', isFetching:true });
+            console.log("TCL: IpfsImgUpload -> handleUpload -> ipfs", ipfs)
             await ipfs.add(this.state.buffer, (err, ipfsHash) => {
+                console.log("TCL: IpfsImgUpload -> handleUpload -> ipfsHash", ipfsHash)
+                console.log("TCL: IpfsImgUpload -> handleUpload -> err", err)
                 this.setState({ ipfsHash:ipfsHash[0].hash });
                 this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
             })

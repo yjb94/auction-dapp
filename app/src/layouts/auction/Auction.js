@@ -2,22 +2,66 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types';
 import styled from "styled-components";
 import Banner from '../../components/DataDisplay/Banner';
+import { BASE_URI } from '../../constants/general';
+import axios from "axios";
+import Card from '../../components/DataDisplay/Card';
+import Masonry from 'react-masonry-css'
+import { Link } from 'react-router-dom'
 
 class Auction extends Component {
     state = {
+        auctions:[]
     }
 
     constructor(props, context) {
         super(props);
-        
     }
     componentWillUnmount() {
     }
 
-    async componentDidMount() {
+    componentDidMount() {
+        this.load();
+    }
+
+    load = () => {
+        const endpoint = BASE_URI + 'getAuctionList';
+    
+        axios.get(endpoint)
+        .then(({data}) => {
+            let filtered = Object.keys(data.data).map(key => {
+                const item = data.data[key];
+                return {...item, id:key};
+            });
+            this.setState({ auctions:filtered })
+        })
+        .catch( err => {
+            console.log(err)
+        });
     }
 
     render() {
+        const { auctions } = this.state;
+        const auctionsView = auctions.map(each => {
+            const to = {
+                pathname:`auction/${each.id}`,
+                item:each
+            }
+            return (
+                <Link
+                    key={each.id} 
+                    to={to}
+                    params={each}
+                >
+                    <Card
+                        containerStyle={{
+                            marginBottom:'40px'
+                        }}
+                        {...each}
+                    />
+                </Link>
+            )
+        })
+
         return (
             <Container>
                 <Banner
@@ -29,6 +73,14 @@ class Auction extends Component {
                         alignItems:'flex-start',
                     }}
                 />
+                <MasonryContainer>
+                    <Masonry
+                        className="my-masonry-grid"
+                        columnClassName="my-masonry-grid_column"
+                    >
+                        {auctionsView}
+                    </Masonry>
+                </MasonryContainer>
             </Container>
         )
     }
@@ -40,6 +92,26 @@ const Container = styled.div`
     justify-content: center;
     align-items: center;
 `;
+
+const MasonryContainer = styled.div`
+    padding: 100px 50px;
+    width: 100%;
+    box-sizing: border-box;
+    display:flex;
+    justify-content:center;
+
+    @media (max-width: 1024px) {
+        padding: 60px 30px;
+    }
+    @media (max-width: 764px) {
+        padding: 40px 20px;
+    }
+    @media (max-width: 480px) {
+        padding: 10px;
+    }
+`;
+
+
 
 Auction.contextTypes = {
     drizzle: PropTypes.object

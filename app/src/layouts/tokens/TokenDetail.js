@@ -6,19 +6,39 @@ import Image from '../../components/DataDisplay/Image';
 import Input from '../../components/DataEntry/Input';
 import StateButton, { ButtonState } from '../../components/Button/StateButton';
 import { drizzleConnect } from 'drizzle-react'
+import { BASE_URI } from '../../constants/general';
+import DatePicker from "react-datepicker";
+import axios from "axios";
+import moment from 'moment';
+
+import "react-datepicker/dist/react-datepicker.css";
 
 class TokenDetail extends Component {
     state = {
         imageUrl:'',
         isCreating:false,
-        isDeleting:false
+        isDeleting:false,
+
+        date: new Date()
     }
     deleted = false;
+    startDate = new Date()
+    endDate = null
 
     constructor(props, context) {
         super(props);
         this.contracts = context.drizzle.contracts;
         this.deedIPFSToken = this.contracts.DeedIPFSToken;
+
+        if (this.startDate.getMonth() === 11) {
+            this.endDate = new Date(this.startDate.getFullYear() + 1, 0, 1);
+        } else {
+            this.endDate = new Date(this.startDate.getFullYear(), this.startDate.getMonth() + 1, 1);
+        }
+    }
+
+    componentWillMount() {
+        this.load();
     }
 
     componentDidMount() {
@@ -40,11 +60,6 @@ class TokenDetail extends Component {
         } catch(e) {
         }
         return ipfsHash;
-    }
-    
-
-    componentWillMount() {
-        this.load();
     }
 
     load = async () => {
@@ -81,7 +96,29 @@ class TokenDetail extends Component {
     }
 
     handleUpload = () => {
-        
+        const endpoint = BASE_URI + 'createAuction';
+        const { title, description, price, date } = this.state;
+        const { id } = this.props.match.params;
+        const { accounts } = this.props
+        const formattedDate = moment(date).format("X")
+    
+        this.setState({ isCreating:true });
+        axios.post(endpoint, {
+            userId:accounts[0],
+            tokenId:id,
+            title:title,
+            description:description,
+            price:price,
+            due:formattedDate
+         })
+        .then( response => {
+            this.setState({ isCreating:false });
+            this.props.history.push('/gallery');
+        })
+        .catch( err => {
+            console.log(err);
+            this.setState({ isCreating:false });
+        });
     }
 
     handleRemove = async (e) => {
@@ -97,8 +134,14 @@ class TokenDetail extends Component {
         this.setState(state);
     }
 
+    handleChange = (date) => {
+        this.setState({
+           date: date
+        });
+    }
+
     render() {
-        const { imageUrl, title, description, price, isCreating, isDeleting } = this.state;
+        const { imageUrl, title, description, price, isCreating, isDeleting, date } = this.state;
 
         return (
             <Container>
@@ -124,6 +167,17 @@ class TokenDetail extends Component {
                             label={'price'}
                             onChange={this.onInputChange}
                         />
+                        <DateContainer>
+                            <DateText>
+                                Due:  
+                            </DateText>
+                            <DatePicker
+                                startDate={this.startDate}
+                                endDate={this.endDate}
+                                selected={date}
+                                onChange={this.handleChange}
+                            />
+                        </DateContainer>
                     </InputsContainer>
                     <ButtonsContainer>
                         <ButtonContainer>
@@ -166,6 +220,14 @@ const InputsContainer = styled.div`
     align-self:flex-start;
     margin-top:30px;
 `;
+
+const DateContainer = styled.div`
+    display:flex;
+    justify-content:row;
+`;
+const DateText = styled.div`
+`;
+
 const ButtonsContainer = styled.div`
     margin-top:30px;
 `;
@@ -173,9 +235,11 @@ const ButtonContainer = styled.div`
     margin-bottom:10px;
 `;
 
-
 TokenDetail.contextTypes = {
-    drizzle: PropTypes.object
+    drizzle: PropTypes.object,
+    router: PropTypes.shape({
+      history: PropTypes.object.isRequired,
+    }),
 }
 
 const mapStateToProps = state => {
