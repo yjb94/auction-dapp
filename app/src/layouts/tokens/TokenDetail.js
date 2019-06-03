@@ -80,6 +80,10 @@ class TokenDetail extends Component {
         }
     }
 
+    handleUpload = () => {
+        
+    }
+
     handleRemove = async (e) => {
         this.setState({ isDeleting:true });
         const { id } = this.props.match.params;
@@ -136,7 +140,7 @@ class TokenDetail extends Component {
                                 onClick={this.handleRemove}
                                 buttonState={isDeleting ? ButtonState.loading : ButtonState.idle}
                             >
-                                Delete Item
+                                Delete artwork
                             </StateButton>
                         </ButtonContainer>
                     </ButtonsContainer>

@@ -38,7 +38,6 @@ class IpfsImgUpload extends Component {
         this.deedIpfsToken.events.Transfer().on("data", _ => {
             this.setState({ isFetching:false });
         });
-        
     }
 
     readFile = () => {
