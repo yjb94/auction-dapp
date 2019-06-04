@@ -97,10 +97,10 @@ class TokenDetail extends Component {
 
     handleUpload = () => {
         const endpoint = BASE_URI + 'createAuction';
-        const { title, description, price, date } = this.state;
+        const { title, description, price, date, imageUrl } = this.state;
         const { id } = this.props.match.params;
         const { accounts } = this.props
-        const formattedDate = moment(date).format("X")
+        const formattedDate = moment(date).format("X");
     
         this.setState({ isCreating:true });
         axios.post(endpoint, {
@@ -109,7 +109,8 @@ class TokenDetail extends Component {
             title:title,
             description:description,
             price:price,
-            due:formattedDate
+            due:formattedDate,
+            image:imageUrl || ""
          })
         .then( response => {
             this.setState({ isCreating:false });

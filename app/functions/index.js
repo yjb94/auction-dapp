@@ -23,9 +23,7 @@ const messages = {
  */
 exports.createAuction = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-        const { userId, tokenId, title, description, price, due } = req.body;
+        const { userId, tokenId, title, description, price, due, image } = req.body;
         
         const auctionId = admin.database().ref().child('auctions').push().key;
     
@@ -39,7 +37,8 @@ exports.createAuction = functions.https.onRequest((req, res) => {
             description: description,
             price: price,
             due: due,
-            createdAt:getTime()
+            createdAt:getTime(),
+            image:image
         };
     
         //add auction to user

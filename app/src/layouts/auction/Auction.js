@@ -7,6 +7,7 @@ import axios from "axios";
 import Card from '../../components/DataDisplay/Card';
 import Masonry from 'react-masonry-css'
 import { Link } from 'react-router-dom'
+import { drizzleConnect } from 'drizzle-react'
 
 class Auction extends Component {
     state = {
@@ -15,6 +16,9 @@ class Auction extends Component {
 
     constructor(props, context) {
         super(props);
+        
+        this.contracts = context.drizzle.contracts;
+        this.deedIPFSToken = this.contracts.DeedIPFSToken;
     }
     componentWillUnmount() {
     }
@@ -117,4 +121,11 @@ Auction.contextTypes = {
     drizzle: PropTypes.object
 }
 
-export default Auction
+const mapStateToProps = state => {
+    return {
+        deedIPFSToken: state.contracts.DeedIPFSToken,
+        accounts: state.accounts,
+        drizzleStatus: state.drizzleStatus
+    }
+}
+export default drizzleConnect(Auction, mapStateToProps);

@@ -6,6 +6,7 @@ import { drizzleConnect } from 'drizzle-react'
 import { BASE_URI } from '../../constants/general';
 import axios from "axios";
 import moment from 'moment';
+import Image from '../../components/DataDisplay/Image';
 
 class AuctionDetail extends Component {
     state = {
@@ -78,7 +79,8 @@ class AuctionDetail extends Component {
 
     handleUpload = () => {
         const endpoint = BASE_URI + 'createAuction';
-        const { title, description, price, date } = this.state;
+        const { title, description, price, date, imageUrl } = this.state;
+        const { item } = this.props.location;
         const { id } = this.props.match.params;
         const { accounts } = this.props
         const formattedDate = moment(date).format("X")
@@ -89,7 +91,8 @@ class AuctionDetail extends Component {
             title:title,
             description:description,
             price:price,
-            due:formattedDate
+            due:formattedDate,
+            image:imageUrl
          })
         .then( response => {
             console.log(response);
@@ -121,6 +124,7 @@ class AuctionDetail extends Component {
 
         return (
             <Container>
+                <Image src={item.image}/>
                 <Title>
                     Title: {item.title}
                 </Title>
