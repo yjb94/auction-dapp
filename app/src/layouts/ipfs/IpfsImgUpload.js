@@ -8,6 +8,8 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css';
 import 'filepond/dist/filepond.min.css';
 
+import firebase from "firebase";
+
 import ipfs from '../../utils/ipfs';
 import '../../css/filepond-custom.css'
 import StateButton, { ButtonState } from '../../components/Button/StateButton';
@@ -80,12 +82,22 @@ class IpfsImgUpload extends Component {
     handleUpload = async () => {
         if (this.validate()) {
             this.setState({ ipfsHash: '', isFetching:true });
-            console.log("TCL: IpfsImgUpload -> handleUpload -> ipfs", ipfs)
+
             await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-                console.log("TCL: IpfsImgUpload -> handleUpload -> ipfsHash", ipfsHash)
-                console.log("TCL: IpfsImgUpload -> handleUpload -> err", err)
                 this.setState({ ipfsHash:ipfsHash[0].hash });
                 this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
+
+                var storageRef = firebase.storage().ref();
+                storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
+                    let updates = {};
+                    updates[`images/${ipfsHash[0].hash}`] = {
+                        uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
+                    };
+
+                    let dbRef = firebase.database().ref();
+                    dbRef.update(updates, error => {
+                    });
+                });
             })
         }
     }

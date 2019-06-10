@@ -20,6 +20,7 @@ class Auction extends Component {
         this.contracts = context.drizzle.contracts;
         this.deedIPFSToken = this.contracts.DeedIPFSToken;
     }
+    
     componentWillUnmount() {
     }
 

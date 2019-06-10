@@ -7,103 +7,57 @@ import { BASE_URI } from '../../constants/general';
 import axios from "axios";
 import moment from 'moment';
 import Image from '../../components/DataDisplay/Image';
+import Input from '../../components/DataEntry/Input';
+import StateButton, { ButtonState } from '../../components/Button/StateButton';
 
 class AuctionDetail extends Component {
-    state = {
-        imageUrl:'',
-    }
-    deleted = false;
 
     constructor(props, context) {
         super(props);
+        const { item } = this.props.location;
+
+        this.state = {
+            bid:0,
+            maxBid:(item.bid || {}).price || 0,
+            isBidding:false,
+            isEnding:false
+        }
+
         this.contracts = context.drizzle.contracts;
         this.deedIPFSToken = this.contracts.DeedIPFSToken;
     }
+    bought = false;
+
 
     componentWillMount() {
-        // this.load();
     }
 
     componentDidMount() {
-        // this.deedIPFSToken.events.Transfer().on("data", (event) => {
-        //     if(!!this.getHash() && !this.deleted) {
-        //         this.deleted = true;
-        //         this.setState({ isDeleting:false });
-        //         this.props.history.goBack();
-        //     }
-        // });
-    }
+        this.deedIPFSToken.events.Transfer().on("data", (event) => {
+            if(!this.bought) {
+                this.bought = true;
+                const { id } = this.props.match.params;
+                const { accounts } = this.props;
 
-    getHash = async () => {
-        const { id } = this.props.match.params;
-        var ipfsHash;
-        try {
-            ipfsHash = await this.deedIPFSToken.methods.tokenURI(id).call();
-        } catch(e) {
-        }
-        return ipfsHash;
-    }
+                const endpoint = BASE_URI + 'endAuction';
 
-    load = async () => {
-        const { id } = this.props.match.params;
-        
-        const ipfsHash = await this.getHash();
-        if(!ipfsHash) {
-            this.deleted = true;
-            this.props.history.goBack();
-        }
-        this.setState({ipfsHash});
+                axios.post(endpoint, {
+                    auctionId:id,
+                    userId:accounts[0]
+                })
+                .then( response => {
+                    this.setState({ isEnding:false });
+                })
+                .catch( err => {
+                    console.log(err);
+                    this.setState({ isEnding:false });
+                });
 
-        if (await this.deedIPFSToken.methods.ownerOf(id).call() === this.props.accounts[0]) {
-            await this.deedIPFSToken.methods.allTokens(id).call();
-            this.handleView(ipfsHash);
-        }
-    }
-    
-    handleView = async (hash)=> {
-        const that =  this;
-        
-        if (hash !== null) {
-            ipfs.cat(hash, function (err, data) {
-                if (err) {
-                    throw err
-                }
-                const arrayBufferView = new Uint8Array(data);
-                const blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
-                const urlCreator = window.URL || window.webkitURL;
-                const imageUrl = urlCreator.createObjectURL( blob );
-                that.setState({ imageUrl });
-            });
-        }
-    }
-
-    handleUpload = () => {
-        const endpoint = BASE_URI + 'createAuction';
-        const { title, description, price, date, imageUrl } = this.state;
-        const { item } = this.props.location;
-        const { id } = this.props.match.params;
-        const { accounts } = this.props
-        const formattedDate = moment(date).format("X")
-    
-        axios.post(endpoint, {
-            userId:accounts[0],
-            tokenId:id,
-            title:title,
-            description:description,
-            price:price,
-            due:formattedDate,
-            image:imageUrl
-         })
-        .then( response => {
-            console.log(response);
-        })
-        .catch( err => {console.log(err)});
-    }
-
-    handleRemove = async (e) => {
-        this.setState({ isDeleting:true });
-        const { id } = this.props.match.params;
-        await this.deedIPFSToken.methods.burn.cacheSend(id);
+                this.setState({ isEnding:false });
+                alert('success');
+                this.props.history.push('/artworks');
+            }
+        });
     }
 
     onInputChange = (e) => {
@@ -113,14 +67,55 @@ class AuctionDetail extends Component {
         this.setState(state);
     }
 
-    handleChange = (date) => {
-        this.setState({
-           date: date
-        });
+    onBid = () => {
+        let { bid, maxBid } = this.state;
+        bid = Number(bid); maxBid = Number(maxBid);
+        const { id } = this.props.match.params;
+        const { item } = this.props.location;
+        const { accounts } = this.props
+
+        if(bid <= maxBid) {
+            alert('bid should be bigger then previous bid');
+        } else if(bid < Number(item.price)) {
+            alert('bid should be bigger then item price');
+        } else {
+
+            const endpoint = BASE_URI + 'bid';
+        
+            this.setState({ isBidding:true });
+            axios.post(endpoint, {
+                auctionId:id,
+                userId:accounts[0],
+                tokenId:item.id,
+                price:bid
+             })
+            .then( response => {
+                this.setState({ isBidding:false, bid:0 , maxBid:response.data.bidPrice });
+            })
+            .catch( err => {
+                console.log(err);
+                this.setState({ isBidding:false });
+            });
+        }
+    }
+
+    endAuction = async () => {
+        const { accounts } = this.props
+        const { item } = this.props.location;
+
+        if(!item.bid) {
+            alert('there is no bid');
+
+            return;
+        }
+        
+        await this.deedIPFSToken.methods.transferFrom.cacheSend(accounts[0], item.bid.userId, item.tokenId);
+        this.setState({ isEnding:true });
     }
 
     render() {
         const { item } = this.props.location;
+        const { bid, isBidding, maxBid, isEnding } = this.state;
 
         return (
             <Container>
@@ -137,6 +132,35 @@ class AuctionDetail extends Component {
                 <Due>
                     Due: {moment.unix(item.due).format('YYYY.MM.DD')}
                 </Due>
+                <CurrentBid>
+                    Current bid: {maxBid}
+                </CurrentBid>
+                {item.userId !== this.props.accounts[0] &&
+                    <BidContainer>
+                        <Input
+                            id={'bid'} 
+                            value={bid} 
+                            label={''}
+                            onChange={this.onInputChange}
+                        />
+                        <StateButton
+                            onClick={this.onBid}
+                            buttonState={isBidding ? ButtonState.loading : ButtonState.idle}
+                        >
+                            Bid!
+                        </StateButton>
+                    </BidContainer>
+                }
+                {item.userId === this.props.accounts[0] &&
+                    <BidContainer>
+                        <StateButton
+                            onClick={this.endAuction}
+                            buttonState={isEnding ? ButtonState.loading : ButtonState.idle}
+                        >
+                            End Auction
+                        </StateButton>
+                    </BidContainer>
+                }
             </Container>
         )
     }
@@ -159,6 +183,12 @@ const Price = styled.div`
 `;
 
 const Due = styled.div`
+`;
+
+const CurrentBid = styled.div`
+`;
+
+const BidContainer = styled.div`
 `;
 
 

@@ -101,6 +101,8 @@ class TokenDetail extends Component {
         const { id } = this.props.match.params;
         const { accounts } = this.props
         const formattedDate = moment(date).format("X");
+        
+        // Create a root reference
     
         this.setState({ isCreating:true });
         axios.post(endpoint, {

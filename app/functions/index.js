@@ -62,14 +62,23 @@ exports.createAuction = functions.https.onRequest((req, res) => {
  */
 exports.getAuctionList = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
-        let skip = req.body.skip || 0;
-        let limit = req.body.limit || 25;
-
-        let ref = admin.database().ref(`auctions`);
-        ref.once('value').then(snap => {
-            let val = snap.val();
-            if (val) return res.send({ result: true, data: val });
-            else return res.send({result: false, message: messages.serverError});
+        return Promise.all(
+            admin.database().ref(`auctions`).once('value'),
+            admin.database().ref(`images`).once('value')
+        )
+        .then(values => {
+            let val = values[0].val();
+            let images = values[1].val();
+            console.log("TCL: images", images)
+            console.log("TCL: val", val);
+            
+            // if(val) {
+            //     val = map(Object.keys(val).forEach((each) => {
+            //         let item = val[each];
+            //         item.userId
+            //     })
+            // }
+            return res.send({ result: true, data: val || null });
         }).catch((e) => {
             res.sendStatus(404);
         })
@@ -78,6 +87,51 @@ exports.getAuctionList = functions.https.onRequest((req, res) => {
 
 
 // bid
+exports.bid = functions.https.onRequest((req, res) => {
+    cors(req, res, () => {
+        const { userId, tokenId, price, auctionId } = req.body;
+        let updates = {};
+    
+
+        //add auction
+        updates[`auctions/${auctionId}/bid/`] = {
+            userId: userId,
+            tokenId: tokenId,
+            price:price
+        };
+    
+        //add auction to user
+        // updates[`users/${userId}/bids/${bidId}`] = {
+        //     user: userId,
+        //     tokenId: tokenId,
+        //     price:price
+        // };
+    
+        let dbRef = admin.database().ref();
+        dbRef.update(updates, error => {
+            if (error) res.send({result: false, message: messages.serverError});
+            else res.send({ result: true, bidPrice: price });
+        });
+    });
+});
+
 
 // winner takes it all
-
+exports.endAuction = functions.https.onRequest((req, res) => {
+    cors(req, res, () => {
+        const { auctionId, userId } = req.body;
+        let updates = {};
+    
+        //end auction
+        updates[`auctions/${auctionId}/`] = null;
+    
+        //add auction to user
+        updates[`users/${userId}/auctions/${auctionId}`] = null;
+    
+        let dbRef = admin.database().ref();
+        dbRef.update(updates, error => {
+            if (error) res.send({result: false, message: messages.serverError});
+            else res.send({ result: true });
+        });
+    });
+});
