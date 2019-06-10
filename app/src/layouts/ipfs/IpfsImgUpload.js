@@ -87,17 +87,17 @@ class IpfsImgUpload extends Component {
                 this.setState({ ipfsHash:ipfsHash[0].hash });
                 this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
 
-                var storageRef = firebase.storage().ref();
-                storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
-                    let updates = {};
-                    updates[`images/${ipfsHash[0].hash}`] = {
-                        uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
-                    };
+                // var storageRef = firebase.storage().ref();
+                // storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
+                //     let updates = {};
+                //     updates[`images/${ipfsHash[0].hash}`] = {
+                //         uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
+                //     };
 
-                    let dbRef = firebase.database().ref();
-                    dbRef.update(updates, error => {
-                    });
-                });
+                //     let dbRef = firebase.database().ref();
+                //     dbRef.update(updates, error => {
+                //     });
+                // });
             })
         }
     }

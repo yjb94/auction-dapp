@@ -1,5 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const gcs = require('@google-cloud/storage')
+const Busboy = require('busboy');
 
 admin.initializeApp(functions.config().firebase);
 
@@ -62,27 +64,40 @@ exports.createAuction = functions.https.onRequest((req, res) => {
  */
 exports.getAuctionList = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
-        return Promise.all(
-            admin.database().ref(`auctions`).once('value'),
-            admin.database().ref(`images`).once('value')
-        )
-        .then(values => {
-            let val = values[0].val();
-            let images = values[1].val();
-            console.log("TCL: images", images)
-            console.log("TCL: val", val);
-            
-            // if(val) {
-            //     val = map(Object.keys(val).forEach((each) => {
-            //         let item = val[each];
-            //         item.userId
-            //     })
-            // }
+        let skip = req.body.skip || 0;
+        let limit = req.body.limit || 25;
+
+        let ref = admin.database().ref(`auctions`);
+        ref.once('value').then(snap => {
+            let val = snap.val();
+            console.log("TCL: val", val)
             return res.send({ result: true, data: val || null });
         }).catch((e) => {
             res.sendStatus(404);
         })
     });
+    // cors(req, res, () => {
+    //     Promise.all(
+    //         admin.database().ref(`auctions`).once('value'),
+    //         admin.database().ref(`images`).once('value')
+    //     )
+    //     .then(values => {
+    //         let val = values[0].val();
+    //         let images = values[1].val();
+    //         console.log("TCL: images", images)
+    //         console.log("TCL: val", val);
+            
+    //         // if(val) {
+    //         //     val = map(Object.keys(val).forEach((each) => {
+    //         //         let item = val[each];
+    //         //         item.userId
+    //         //     })
+    //         // }
+    //         return res.send({ result: true, data: val || null });
+    //     }).catch((e) => {
+    //         res.sendStatus(404);
+    //     })
+    // });
 });
 
 

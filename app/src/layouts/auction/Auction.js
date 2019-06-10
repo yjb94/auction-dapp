@@ -8,6 +8,7 @@ import Card from '../../components/DataDisplay/Card';
 import Masonry from 'react-masonry-css'
 import { Link } from 'react-router-dom'
 import { drizzleConnect } from 'drizzle-react'
+import ipfs from '../../utils/ipfs';
 
 class Auction extends Component {
     state = {
@@ -24,8 +25,52 @@ class Auction extends Component {
     componentWillUnmount() {
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.load();
+    }
+
+    handleView = async (ipfsHash, t, apr)=> {
+        const that =  this;
+        
+        if (ipfsHash !== null) {
+            ipfs.cat(ipfsHash, function (err, data) {
+                if (err) {
+                    throw err
+                }
+                const arrayBufferView = new Uint8Array(data);
+                const blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+                const urlCreator = window.URL || window.webkitURL;
+                const imageUrl = urlCreator.createObjectURL( blob );
+                var { auctions } = that.state
+                
+                let item = auctions.find(x => x.tokenId === t);
+                if(item) {
+                    item.image = imageUrl;
+                    
+                    that.setState({ auctions:auctions });
+                }
+            });
+        }
+        
+    }
+
+    getTokenList = async (event) => {
+        let t = 0, apr = 0;
+        const totalSupply = await this.deedIPFSToken.methods.totalSupply().call();
+
+        for (let j=0; j<totalSupply; j++) {
+            t = await this.deedIPFSToken.methods.tokenByIndex(j).call();
+            apr = await this.deedIPFSToken.methods.getApproved(t).call();
+            
+            const ipfsHash = await this.deedIPFSToken.methods.tokenURI(t).call();
+            this.setState({ ipfsHash });
+            
+
+            if (await this.deedIPFSToken.methods.ownerOf(t).call() === this.props.accounts[0]) {
+                await this.deedIPFSToken.methods.allTokens(t).call();
+                this.handleView(ipfsHash, t, apr);
+            }
+        }
     }
 
     load = () => {
@@ -37,7 +82,9 @@ class Auction extends Component {
                 const item = data.data[key];
                 return {...item, id:key};
             });
-            this.setState({ auctions:filtered })
+            this.setState({ auctions:filtered }, async () => {
+                await this.getTokenList();
+            })
         })
         .catch( err => {
             console.log(err)
