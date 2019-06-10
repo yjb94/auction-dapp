@@ -79,29 +79,6 @@ class IpfsImgUpload extends Component {
         return !err_msg
     }
 
-    // handleUpload = async () => {
-    //     if (this.validate()) {
-    //         this.setState({ ipfsHash: '', isFetching:true });
-
-    //         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-    //             this.setState({ ipfsHash:ipfsHash[0].hash });
-    //             this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
-
-    //             // var storageRef = firebase.storage().ref();
-    //             // storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
-    //             //     let updates = {};
-    //             //     updates[`images/${ipfsHash[0].hash}`] = {
-    //             //         uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
-    //             //     };
-
-    //             //     let dbRef = firebase.database().ref();
-    //             //     dbRef.update(updates, error => {
-    //             //     });
-    //             // });
-                
-    //         })
-    //     }
-    // }
     handleUpload = async () => {
         if (this.validate()) {
             let t = await this.deedIpfsToken.methods.totalSupply().call()
