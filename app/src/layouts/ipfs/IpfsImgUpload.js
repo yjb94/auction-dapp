@@ -79,28 +79,56 @@ class IpfsImgUpload extends Component {
         return !err_msg
     }
 
+    // handleUpload = async () => {
+    //     if (this.validate()) {
+    //         this.setState({ ipfsHash: '', isFetching:true });
+
+    //         await ipfs.add(this.state.buffer, (err, ipfsHash) => {
+    //             this.setState({ ipfsHash:ipfsHash[0].hash });
+    //             this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
+
+    //             // var storageRef = firebase.storage().ref();
+    //             // storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
+    //             //     let updates = {};
+    //             //     updates[`images/${ipfsHash[0].hash}`] = {
+    //             //         uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
+    //             //     };
+
+    //             //     let dbRef = firebase.database().ref();
+    //             //     dbRef.update(updates, error => {
+    //             //     });
+    //             // });
+                
+    //         })
+    //     }
+    // }
     handleUpload = async () => {
         if (this.validate()) {
-            this.setState({ ipfsHash: '', isFetching:true });
+            let t = await this.deedIpfsToken.methods.totalSupply().call()
+    
+            if (this.state.files.length > 0) {
+                this.setState({ ipfsHash: '', isFetching:true });
 
-            await ipfs.add(this.state.buffer, (err, ipfsHash) => {
-                this.setState({ ipfsHash:ipfsHash[0].hash });
-                this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
+                await ipfs.add(this.state.buffer, async (err, ipfsHash) => {
+                    var promises = [];
+                    for(let i = 0; i < t; i++) {
+                        var index = await this.deedIpfsToken.methods.tokenByIndex(i).call();
+                        promises.push(this.deedIpfsToken.methods.tokenURI(index).call())
+                    }
 
-                // var storageRef = firebase.storage().ref();
-                // storageRef.child(`images/${Math.random().toString(36).substring(7)}.jpg`).put(this.state.buffer).then(function(snapshot) {
-                //     let updates = {};
-                //     updates[`images/${ipfsHash[0].hash}`] = {
-                //         uri:`https://firebasestorage.googleapis.com/v0/b/auction-dapp.appspot.com/o/${snapshot.metadata.fullPath}?alt=media`
-                //     };
-
-                //     let dbRef = firebase.database().ref();
-                //     dbRef.update(updates, error => {
-                //     });
-                // });
-            })
+                    Promise.all(promises).then((values) => {
+                        if(values.indexOf(ipfsHash[0].hash) === -1) {
+                            this.setState({ ipfsHash:ipfsHash[0].hash });
+                            this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
+                        } else {
+                            alert('duplicated');
+                        }
+                    })
+                })
+            }
         }
     }
+
 
     handleView = async () => {
         const that = this;
