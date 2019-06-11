@@ -13,6 +13,8 @@ import { config } from './constants/general';
 import AuctionContainer from './layouts/auction/AuctionContainer';
 import TokenDetail from './layouts/tokens/TokenDetail';
 import AuctionDetail from './layouts/auction/AuctionDetail';
+import HistoryContainer from './layouts/history/HistoryContainer';
+import HistoryDetail from './layouts/history/HistoryDetail';
 
 class Home extends Component {
     render() {
@@ -47,6 +49,11 @@ class Home extends Component {
                                     Gallery
                                 </NavMenu>
                             </Link>
+                            <Link to={"/historys"}>
+                                <NavMenu>
+                                    History
+                                </NavMenu>
+                            </Link>
                         </RightContainer>
                     </MainHeader>
                 </HeaderContainer>
@@ -55,10 +62,13 @@ class Home extends Component {
                 <Route path={"/create"} component={ipfsContainer}/>
                 <Route path={"/artworks"} component={TokensContainer}/>
                 <Route path={"/gallery"} component={AuctionContainer}/>
+                <Route path={"/historys"} component={HistoryContainer}/>
     
                 <Route path={"/artwork/:id"} component={TokenDetail}/>
 
                 <Route path={"/auction/:id"} component={AuctionDetail}/>
+
+                <Route path={"/history/:id"} component={HistoryDetail}/>
             </div>
         );
     }

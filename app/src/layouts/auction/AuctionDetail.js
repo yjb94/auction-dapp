@@ -38,12 +38,16 @@ class AuctionDetail extends Component {
                 this.bought = true;
                 const { id } = this.props.match.params;
                 const { accounts } = this.props;
+                const { item } = this.props.location;
 
                 const endpoint = BASE_URI + 'endAuction';
 
                 axios.post(endpoint, {
                     auctionId:id,
-                    userId:accounts[0]
+                    fromId:accounts[0],
+                    toId:item.bid.userId,
+                    price:item.bid.price,
+                    tokenId:item.tokenId
                 })
                 .then( response => {
                     this.setState({ isEnding:false });

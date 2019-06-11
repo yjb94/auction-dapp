@@ -95,10 +95,15 @@ class IpfsImgUpload extends Component {
 
                     Promise.all(promises).then((values) => {
                         if(values.indexOf(ipfsHash[0].hash) === -1) {
+                            // var storageRef = firebase.storage().ref(); 
+                            // storageRef.child(`images/${ipfsHash[0].hash}.jpg`).put(this.state.buffer).then(function(snapshot) { 
+                            // }); 
+
                             this.setState({ ipfsHash:ipfsHash[0].hash });
                             this.deedIpfsToken.methods.mint.cacheSend(ipfsHash[0].hash);
                         } else {
                             alert('duplicated');
+                            this.setState({ isFetching:false });
                         }
                     })
                 })

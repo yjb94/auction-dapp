@@ -134,14 +134,25 @@ exports.bid = functions.https.onRequest((req, res) => {
 // winner takes it all
 exports.endAuction = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
-        const { auctionId, userId } = req.body;
+        const { auctionId, fromId, toId, tokenId, price } = req.body;
         let updates = {};
     
         //end auction
         updates[`auctions/${auctionId}/`] = null;
     
         //add auction to user
-        updates[`users/${userId}/auctions/${auctionId}`] = null;
+        updates[`users/${fromId}/auctions/${auctionId}`] = null;
+        
+        const historyId = admin.database().ref().child('history').push().key;
+    
+        //add history
+        updates[`history/${tokenId}/${historyId}`] = {
+            tokenId: tokenId,
+            from:fromId,
+            to: toId,
+            price: price,
+            transactionDate:getTime()
+        };
     
         let dbRef = admin.database().ref();
         dbRef.update(updates, error => {
