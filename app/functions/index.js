@@ -150,3 +150,57 @@ exports.endAuction = functions.https.onRequest((req, res) => {
         });
     });
 });
+
+/** createHistory
+ * @params title
+ * @params tokenId
+ * @params touserId
+ * @params fromuserId
+ * @params price
+ */
+exports.createHistory = functions.https.onRequest((req, res) => {
+    cors(req, res, () => {
+        const { title, tokenId, userId, fromuserId, price } = req.body;
+        
+        const historyId = admin.database().ref().child('history').push().key;
+    
+        let updates = {};
+    
+        //add history
+        updates[`history/${tokenId}/${historyId}`] = {
+            title: title,
+            tokenId: tokenId,
+            touserId:userId,
+            fromuserId: fromuserId,
+            price: price,
+            transactionDate:getTime()
+        };
+    
+        let dbRef = admin.database().ref();
+        dbRef.update(updates, error => {
+            if (error) res.send({result: false, message: messages.serverError});
+            else res.send({ result: true, historyId: historyId });
+        });
+    })
+});
+
+
+/** gethistoryList
+ * @params skip
+ * @params limit
+ */
+exports.getHistoryList = functions.https.onRequest((req, res) => {
+    cors(req, res, () => {
+        let skip = req.body.skip || 0;
+        let limit = req.body.limit || 25;
+
+        let ref = admin.database().ref(`history`);
+        ref.once('value').then(snap => {
+            let val = snap.val();
+            if (val) return res.send({ result: true, data: val });
+            else return res.send({result: false, message: messages.serverError});
+        }).catch((e) => {
+            res.sendStatus(404);
+        })
+    });
+});
